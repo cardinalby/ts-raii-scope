@@ -1,12 +1,16 @@
 {
   "name": "ts-raii-scope",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "TypeScript RAII proof of concept",
   "main": "dist/index.js",
   "keywords": [
     "raii",
-    "wrapper",
+    "scope",
     "decorator",
+    "IDisposable",
+    "destroy",
+    "dispose",
+    "stack",
     "ts"
   ],
   "author": "cardinalby",
