@@ -1,8 +1,16 @@
 {
   "name": "ts-raii-scope",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TypeScript RAII proof of concept",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cardinalby/ts-raii-scope"
+  },
+  "homepage": "https://github.com/cardinalby/ts-raii-scope",
   "keywords": [
     "raii",
     "scope",
