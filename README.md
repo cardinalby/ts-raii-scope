@@ -91,7 +91,7 @@ class Example {
 Decorator wrap method call in `try...finally` and make global `raii` aware of method start and finish.
 But to make it works for async methods (which return `Promise` but continue use local variables in their scope in the future) we should use `@AsyncRaiiMethodScope` and save raii scope to use it in method
 ```js
-@AsyncRaiiMethodScope
+    @AsyncRaiiMethodScope
     public async method(): Promise<string> {
         const asyncScope = raii.saveCurrentAsyncScope();
         const tmp1 = asyncScope.push(new Tmp());
