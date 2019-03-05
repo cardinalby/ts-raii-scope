@@ -33,28 +33,47 @@ Disposing also could be made async:
     }
 ``` 
 You could also use `DisposableResource` from this package to get `IDisposable` object.
+
 Ok, now usage of our `Tmp` class should looks like:
 ```js
 const tmp1 = new Tmp();
-const tmp2 = new Tmp();
 try {
-    // using tmp1, tmp2
+    // ... use tmp1
+    const tmp2 = new Tmp();
+    try {
+        // ... use tmp1, tmp2
+        const tmp3 = new Tmp();
+        try {
+            // use tmp1, tmp2, tmp3
+        }
+        finally {
+            tmp3.dispose();            
+        }
+    }
+    finally {
+      tmp2.dispose();
+    }
 }
 finally {
-  tmp1.dispose();  // or await tmp1.dispose() in case of async method
-  tmp2.dispose();  // or await tmp2.dispose() in case of async method
+  tmp1.dispose();  // or await tmp2.dispose() in case of async method
 }
 ```
-Here we can use `RaiiScope` class to collect `IDisposable` resources and finally dispose them:
+You should agree, it looks quite ugly with all that nested `try ... finally` blocks.
+ 
+Here `RaiiScope` comes up to help us collect `IDisposable` resources and finally dispose them in a right order:
 ```js
 const raiiScope = new RaiiScope();
-const tmp1 = raiiScope.push(new Tmp());
-const tmp2 = raiiScope.push(new Tmp());
 try {
-    // using tmp1, tmp2
+    const tmp1 = raiiScope.push(new Tmp());
+    // ... using tmp1
+    const tmp2 = raiiScope.push(new Tmp());
+    // ... using tmp1, tmp2
+    const tmp3 = raiiScope.push(new Tmp());
+    // ... using tmp1, tmp2, tmp3
 }
 finally {
-  raiiScope.dispose();  // or await raiiScope.dispose() in case of async method  
+    // or await raiiScope.dispose() in case of async method
+    raiiScope.dispose();    
 }
 ```
 It works ok for all disposable classes: ones which do `dispose()` synchronously and ones which return `Promise` from `dispose()`. 
@@ -62,46 +81,53 @@ It works ok for all disposable classes: ones which do `dispose()` synchronously 
 Another way to do the same:
 ```js
 RaiiScope.doInside(
-    [new Tmp(), new Tmp()], 
-    (tmp1: Tmp, tmp2: Tmp) => {
-       // using tmp1, tmp2
+    [new Tmp(), new Tmp(), new Tmp()], 
+    (tmp1: Tmp, tmp2: Tmp, tmp3: Tmp) => {
+       // ... using tmp1, tmp2, tmp3
     }
  );
 ```
-`RaiiScope.doInsideAsync()` is also available. It `await`s method call inside and then `await`s all `dispose()` calls.
+`RaiiScope.doInsideAsync()` is available as well. It `await`s method call inside and then `await`s all `dispose()` calls.
 
 Package provide one more kind of syntax sugar for using `IDisposable` resources in methods: `@SyncRaiiMethodScope` and `@AsyncRaiiMethodScope` decorators with the global `raii` object.
 ```js
 import { AsyncRaiiMethodScope, raii, SyncRaiiMethodScope } from 'ts-raii-scope';
 
 class Example {
-    @SyncRaiiMethodScope
+    @SyncRaiiMethodScope    
     public method(): string {
+        // Decorator implicitly creates new RaiiScope for each 
+        // method call and connects it to global raii
+        
         const tmp1 = raii.push(new Tmp());
         const tmp2 = raii.push(new Tmp());
-        // using tmp1, tmp2
+        const tmp3 = raii.push(new Tmp());
+        
+        // ... using tmp1, tmp2, tmp3
         
         // when execution goes out of scope (method returns, or throws exception)
-        // tmp1.dispose() and tmp2.dispose() are called by decorator 
-        // (actually it's dispose() of RaiiScope, internally created by decorator
-        //  especially for your method call)
+        // tmp3.dispose(), tmp2.dispose(), tmp1.dispose() are called inside the  
+        // created RaiiScope
     }
 }
 ``` 
-Decorator wrap method call in `try...finally` and make global `raii` aware of method start and finish.
+Decorator wraps method call in `try ... finally` and make global `raii` aware of method start and finish.
 But to make it works for async methods (which return `Promise` but continue use local variables in their scope in the future) we should use `@AsyncRaiiMethodScope` and save raii scope to use it in method
 ```js
     @AsyncRaiiMethodScope
     public async method(): Promise<string> {
         const asyncScope = raii.saveCurrentAsyncScope();
+        
         const tmp1 = asyncScope.push(new Tmp());
         const tmp2 = asyncScope.push(new Tmp());            
-        // using tmp1, tmp2
+        const tmp3 = asyncScope.push(new Tmp());
+        
+        // ... using tmp1, tmp2, tmp3
         // await ...
-        // using tmp1, tmp2 again
+        // ... using tmp1, tmp2, tmp3 again
         
         // when result promise get resolved or rejected 
-        // tmp1.dispose() and tmp2.dispose() are called by decorator 
-        // (asyncScope.dispose() actually)
+        // tmp3.dispose(), tmp2.dispose(), tmp1.dispose() are called inside 
+        // asyncScope.dispose(), which is called by decorator
     }
 ```
