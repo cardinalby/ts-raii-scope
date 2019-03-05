@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/cardinalby/ts-raii-scope.svg?branch=master)](https://travis-ci.com/cardinalby/ts-raii-scope)
 ### Introduction
 RAII approach proof of concept in TypeScript, not for production use!
 ### Installation
