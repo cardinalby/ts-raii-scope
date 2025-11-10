@@ -1,8 +1,14 @@
 [![Build Status](https://travis-ci.com/cardinalby/ts-raii-scope.svg?branch=master)](https://travis-ci.com/cardinalby/ts-raii-scope)
 ### Introduction
 RAII approach proof of concept in TypeScript, not for production use!
+
+**Makes absolutely no sense after TS 5.2 has been released!**
+
+Use [https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html#using-declarations-and-explicit-resource-management](built-in "using") keyword instead!
+
 ### Installation
 `npm install ts-raii-scope`
+
 ### How to use   
 Let's create class representing temporary dir. According to RAII object of this class should get acquisition of resource in constructor and be responsible of disposing (destroying) resource when the object is not more needed.
 ```js
